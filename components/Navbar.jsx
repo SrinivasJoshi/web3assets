@@ -2,9 +2,9 @@ import React from 'react';
 
 const Navbar = () => {
 	return (
-		<div className='flex justify-between items-center'>
+		<div className='flex justify-between items-center bg-yellow h-10'>
 			<img src='' alt='Logo' />
-			//Wallet
+			<button>Wallet</button>
 		</div>
 	);
 };
