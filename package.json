@@ -9,6 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@arcana/auth": "^1.0.0",
+    "@arcana/auth-react": "^0.0.2",
+    "@lighthouse-web3/sdk": "^0.1.12",
+    "ethers": "^6.0.2",
     "next": "13.1.6",
     "react": "18.2.0",
     "react-dom": "18.2.0"
