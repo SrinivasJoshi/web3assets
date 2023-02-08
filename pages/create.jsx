@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import lighthouse from '@lighthouse-web3/sdk';
 import { ethers } from 'ethers';
+import { Contract } from 'ethers';
+import { CONTRACT_ADDRESS, abi, contractConditions } from '../constants';
+import Router from 'next/router';
 
 const Create = () => {
 	const [percentageDone, setPercentageDone] = useState(0);
@@ -13,7 +16,6 @@ const Create = () => {
 	const [pages, setPages] = useState(0);
 	const [file, setFile] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [fileUploaded, setFileUploaded] = useState(false);
 
 	const encryptionSignature = async () => {
 		const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -36,14 +38,6 @@ const Create = () => {
 
 	/* Deploy file along with encryption */
 	const deployEncrypted = async (e) => {
-		/*
-		   uploadEncrypted(e, publicKey, accessToken, uploadProgressCallback)
-		   - e: js event
-		   - publicKey: wallets public key
-		   - accessToken: your api key
-		   - signedMessage: message signed by the owner of publicKey
-		   - uploadProgressCallback: function to get progress (optional)
-		*/
 		const sig = await encryptionSignature();
 		const response = await lighthouse.uploadEncrypted(
 			e,
@@ -53,7 +47,7 @@ const Create = () => {
 			progressCallback
 		);
 		console.log(response);
-		setFileUploaded(true);
+		return response.Hash;
 		/*
 		  output:
 			{
@@ -65,13 +59,48 @@ const Create = () => {
 		*/
 	};
 
-	const submitForm = () => {
-		//validate data
-		//set loading state - true
-		//send transaction to smart contract
+	const submitForm = async () => {
+		if (
+			!name ||
+			!author ||
+			!description ||
+			!lanuguage ||
+			price <= 0 ||
+			pages <= 0 ||
+			!file
+		) {
+			alert('invalid input or missing input');
+			return;
+		}
+		setLoading('Uploading file ...');
+		//upload file
+		let cid = await deployEncrypted(file);
+		//access conditions
+		setLoading('Interacting with smart contract...');
+		const aggregator = '([1])';
+		const { publicKey, signedMessage } = await encryptionSignature();
+		const response = await lighthouse.accessCondition(
+			publicKey,
+			cid,
+			signedMessage,
+			contractConditions,
+			aggregator
+		);
+
+		//upload other data to ipfs
+		//then send everything to smart contrac
+		try {
+			const signer = await encryptionSignature();
+			const Contract = new Contract(CONTRACT_ADDRESS, abi, signer);
+			const res = await Contract.createAsset(body);
+		} catch (error) {
+			console.log(error);
+		}
+
 		//apply access controls
-		//set loading state - false
-		//clear state variables
+		//set loading state - false and redirect to profile
+		setLoading(false);
+		// Router.push('/profile');
 	};
 
 	return (
@@ -91,6 +120,7 @@ const Create = () => {
 							className='block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-black dark:border-gray-600 dark:focus:border-purple focus:outline-none focus:ring-0 focus:border-purple peer'
 							placeholder=' '
 							required
+							onChange={(e) => setName(e.target.value)}
 						/>
 						<label
 							for='floating_name'
@@ -106,6 +136,7 @@ const Create = () => {
 							className='block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-black dark:border-gray-600 dark:focus:border-purple focus:outline-none focus:ring-0 focus:border-purple peer'
 							placeholder=' '
 							required
+							onChange={(e) => setAuthor(e.target.value)}
 						/>
 						<label
 							for='floating_author'
@@ -124,7 +155,8 @@ const Create = () => {
 							id='description'
 							rows='10'
 							className='block p-2.5 w-full text-sm text-gray-900 bg-transparent rounded-lg border-2 dark:bg-transparent dark:border-gray-700 dark:text-black outline-none'
-							placeholder=''></textarea>
+							placeholder=''
+							onChange={(e) => setDescription(e.target.value)}></textarea>
 					</div>
 					<div className='grid md:grid-cols-3 md:gap-6'>
 						<div className='relative z-0 w-full mb-6 group'>
@@ -136,6 +168,7 @@ const Create = () => {
 								className='block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-black dark:border-gray-600 dark:focus:border-purple focus:outline-none focus:ring-0 focus:border-purple peer'
 								placeholder=' '
 								required
+								onChange={(e) => setPrice(e.target.value)}
 							/>
 							<label
 								for='floating_price'
@@ -151,6 +184,7 @@ const Create = () => {
 								className='block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-black dark:border-gray-600 dark:focus:border-purple focus:outline-none focus:ring-0 focus:border-blue-600 peer'
 								placeholder=' '
 								required
+								onChange={(e) => setLanguage(e.target.value)}
 							/>
 							<label
 								for='floating_language'
@@ -167,6 +201,7 @@ const Create = () => {
 								className='block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-black dark:border-gray-600 dark:focus:border-purple focus:outline-none focus:ring-0 focus:border-purple peer'
 								placeholder=' '
 								required
+								onChange={(e) => setPages(e.target.value)}
 							/>
 							<label
 								for='floating_pages'
@@ -184,15 +219,16 @@ const Create = () => {
 							aria-describedby='file_help'
 							id='file'
 							type='file'
-							disabled={fileUploaded}
-							onChange={(e) => deployEncrypted(e)}
+							onChange={(e) => setFile(e)}
 						/>
 					</div>
 					<button
 						type='submit'
+						disabled={loading}
 						className='px-3 py-2 rounded-3xl text-sm bg-purple text-yellow'>
 						Submit
 					</button>
+					{loading && <p>{percentageDone} % complete</p>}
 				</form>
 			</main>
 		</section>
