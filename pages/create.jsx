@@ -8,6 +8,8 @@ import Router from 'next/router';
 
 const Create = () => {
 	const [percentageDone, setPercentageDone] = useState(0);
+	const [loading, setLoading] = useState(false);
+
 	const [name, setName] = useState('');
 	const [author, setAuthor] = useState('');
 	const [description, setDescription] = useState('');
@@ -15,7 +17,6 @@ const Create = () => {
 	const [price, setPrice] = useState(0);
 	const [pages, setPages] = useState(0);
 	const [file, setFile] = useState(null);
-	const [loading, setLoading] = useState(false);
 
 	const encryptionSignature = async () => {
 		const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -38,6 +39,7 @@ const Create = () => {
 
 	/* Deploy file along with encryption */
 	const deployEncrypted = async (e) => {
+		setLoading('Uploading file ...');
 		const sig = await encryptionSignature();
 		const response = await lighthouse.uploadEncrypted(
 			e,
@@ -46,17 +48,39 @@ const Create = () => {
 			sig.signedMessage,
 			progressCallback
 		);
-		console.log(response);
+		console.log('Encrypted File hash', response.Hash);
 		return response.Hash;
-		/*
-		  output:
-			{
-			  Name: "c04b017b6b9d1c189e15e6559aeb3ca8.png",
-			  Size: "318557",
-			  Hash: "QmcuuAtmYqbPYmPx3vhJvPDi61zMxYvJbfENMjBQjq7aM3"
-			}
-		  Note: Hash in response is CID.
-		*/
+	};
+
+	const uploadToIpfs = async (fileCid) => {
+		setLoading('uploading data to IPFS');
+		const data = JSON.stringify({
+			name,
+			author,
+			description,
+			lanuguage,
+			pages,
+			price,
+			fileCid,
+		});
+		try {
+			const resFile = await axios({
+				method: 'post',
+				url: 'https://api.pinata.cloud/pinning/pinJSONToIPFS',
+				data,
+				headers: {
+					pinata_api_key: `${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
+					pinata_secret_api_key: `${process.env.NEXT_PUBLIC_PINATA_API_SECRET}`,
+					'Content-Type': 'application/json',
+				},
+			});
+
+			const Hash = `https://gateway.pinata.cloud/ipfs/${resFile.data.IpfsHash}`;
+			console.log('IPFS hash : ', Hash);
+			return Hash;
+		} catch (error) {
+			console.log('Error uploading file to IPFS : ', error?.data.message);
+		}
 	};
 
 	const submitForm = async () => {
@@ -72,33 +96,32 @@ const Create = () => {
 			alert('invalid input or missing input');
 			return;
 		}
-		setLoading('Uploading file ...');
 		//upload file
-		let cid = await deployEncrypted(file);
-		//access conditions
+		let fileCid = await deployEncrypted(file);
+		//apply access conditions
 		setLoading('Interacting with smart contract...');
 		const aggregator = '([1])';
 		const { publicKey, signedMessage } = await encryptionSignature();
 		const response = await lighthouse.accessCondition(
 			publicKey,
-			cid,
+			fileCid,
 			signedMessage,
 			contractConditions,
 			aggregator
 		);
 
 		//upload other data to ipfs
-		//then send everything to smart contrac
+		const ipfsLink = await uploadToIpfs(fileCid);
+
+		//send everything to smart contract
 		try {
 			const signer = await encryptionSignature();
 			const Contract = new Contract(CONTRACT_ADDRESS, abi, signer);
-			const res = await Contract.createAsset(body);
+			const res = await Contract.createAsset(ipfsLink, price);
 		} catch (error) {
 			console.log(error);
 		}
 
-		//apply access controls
-		//set loading state - false and redirect to profile
 		setLoading(false);
 		// Router.push('/profile');
 	};
