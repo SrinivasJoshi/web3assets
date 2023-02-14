@@ -12,16 +12,31 @@
     "@arcana/auth": "^1.0.0",
     "@arcana/auth-react": "^0.0.2",
     "@lighthouse-web3/sdk": "^0.1.12",
-    "ethers": "^6.0.2",
+    "@openzeppelin/contracts": "^4.8.1",
+    "dotenv": "^16.0.3",
+    "ethers": "^5.4.7",
     "next": "13.1.6",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
+    "@ethersproject/abi": "^5.4.7",
+    "@ethersproject/providers": "^5.4.7",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^3.0.0",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
     "autoprefixer": "^10.4.13",
+    "chai": "^4.2.0",
+    "ethers": "^5.4.7",
     "hardhat": "^2.12.6",
+    "hardhat-gas-reporter": "^1.0.8",
     "postcss": "^8.4.21",
-    "tailwindcss": "^3.2.4"
+    "solidity-coverage": "^0.8.0",
+    "tailwindcss": "^3.2.4",
+    "typechain": "^8.1.0"
   }
 }
