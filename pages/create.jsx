@@ -51,7 +51,7 @@ const Create = () => {
 		console.log('Encrypted File hash', response.Hash);
 		return response.Hash;
 	};
-
+	/* Deploy the whole data as JSON to IPFS*/
 	const uploadToIpfs = async (fileCid) => {
 		setLoading('uploading data to IPFS');
 		const data = JSON.stringify({
@@ -60,7 +60,6 @@ const Create = () => {
 			description,
 			lanuguage,
 			pages,
-			price,
 			fileCid,
 		});
 		try {
