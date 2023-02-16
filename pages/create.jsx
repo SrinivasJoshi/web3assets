@@ -8,7 +8,7 @@ import Router from 'next/router';
 
 const Create = () => {
 	const [percentageDone, setPercentageDone] = useState(0);
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState('');
 
 	const [name, setName] = useState('');
 	const [author, setAuthor] = useState('');
@@ -82,7 +82,8 @@ const Create = () => {
 		}
 	};
 
-	const submitForm = async () => {
+	const submitForm = async (e) => {
+		e.preventDefault();
 		if (
 			!name ||
 			!author ||
@@ -97,6 +98,9 @@ const Create = () => {
 		}
 		//upload file
 		let fileCid = await deployEncrypted(file);
+		if (!fileCid) {
+			return;
+		}
 		//apply access conditions
 		setLoading('Interacting with smart contract...');
 		const aggregator = '([1])';
@@ -115,8 +119,8 @@ const Create = () => {
 		//send everything to smart contract
 		try {
 			const signer = await encryptionSignature();
-			const Contract = new Contract(CONTRACT_ADDRESS, abi, signer);
-			const res = await Contract.createAsset(ipfsLink, price);
+			const contract = new Contract(CONTRACT_ADDRESS, abi, signer);
+			const res = await contract.createAsset(ipfsLink, price);
 		} catch (error) {
 			console.log(error);
 		}
@@ -145,7 +149,7 @@ const Create = () => {
 							onChange={(e) => setName(e.target.value)}
 						/>
 						<label
-							for='floating_name'
+							htmlFor='floating_name'
 							className='peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-700 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-purple peer-focus:dark:text-purple peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6'>
 							Book Name
 						</label>
@@ -161,7 +165,7 @@ const Create = () => {
 							onChange={(e) => setAuthor(e.target.value)}
 						/>
 						<label
-							for='floating_author'
+							htmlFor='floating_author'
 							className='peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-700 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-purple peer-focus:dark:text-purple peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6'>
 							Author(s)
 						</label>
@@ -169,7 +173,7 @@ const Create = () => {
 
 					<div className='relative z-0 w-full mb-6 group'>
 						<label
-							for='description'
+							htmlFor='description'
 							className='block mb-2 text-sm font-medium text-gray-900 dark:text-gray-700'>
 							Description
 						</label>
@@ -193,7 +197,7 @@ const Create = () => {
 								onChange={(e) => setPrice(e.target.value)}
 							/>
 							<label
-								for='floating_price'
+								htmlFor='floating_price'
 								className='peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-700 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-purple peer-focus:dark:text-purple peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6'>
 								Price in $
 							</label>
@@ -209,8 +213,8 @@ const Create = () => {
 								onChange={(e) => setLanguage(e.target.value)}
 							/>
 							<label
-								for='floating_language'
-								className='peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-700 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-focus:dark:text-purple peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6'>
+								htmlFor='floating_language'
+								className='peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-700 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-focus:dark:text-purple peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 autofill:bg-transparent'>
 								Lanuguage
 							</label>
 						</div>
@@ -226,28 +230,31 @@ const Create = () => {
 								onChange={(e) => setPages(e.target.value)}
 							/>
 							<label
-								for='floating_pages'
+								htmlFor='floating_pages'
 								className='peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-700 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-focus:dark:text-purple peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6'>
 								Number of Pages
 							</label>
 						</div>
 					</div>
 					<div className='mb-6'>
-						<label class='block mb-2 text-sm dark:text-gray-700' for='file'>
+						<label
+							className='block mb-2 text-sm dark:text-gray-700'
+							htmlFor='file'>
 							Upload file
 						</label>
 						<input
-							class='p-2 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-700 focus:outline-none dark:bg-transparent dark:border-gray-600 dark:placeholder-gray-700'
+							className='p-2 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-700 focus:outline-none dark:bg-transparent dark:border-gray-600 dark:placeholder-gray-700'
 							aria-describedby='file_help'
 							id='file'
 							type='file'
 							onChange={(e) => setFile(e)}
+							disabled={loading.length > 0}
 						/>
 					</div>
 					<button
 						type='submit'
-						disabled={loading}
-						className='px-3 py-2 rounded-3xl text-sm bg-purple text-yellow'>
+						disabled={loading.length > 0}
+						className='px-3 py-2 rounded-3xl text-sm bg-purple text-yellow disabled:bg-slate-800 autofill:bg-purple'>
 						Submit
 					</button>
 					{loading && <p>{percentageDone} % complete</p>}

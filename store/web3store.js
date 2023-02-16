@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import { Contract, providers, utils } from 'ethers';
 import { abi, NFT_CONTRACT_ADDRESS } from '../constants';
 

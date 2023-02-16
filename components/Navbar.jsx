@@ -44,9 +44,10 @@ const Navbar = () => {
 			</Link>
 
 			{walletConnected ? (
-				<div className='flex items-center justify-evenly w-80'>
+				<div className='flex items-center justify-evenly w-96'>
 					<Link href={'/marketplace'}>Discover</Link>
 					<Link href={'/profile'}>Profile</Link>
+					<Link href={'/create'}>Create</Link>
 					<p className='border border-purple rounded-xl px-3 py-2'>
 						{address.slice(0, 5) + '...' + address.slice(-4, -1)}{' '}
 					</p>
