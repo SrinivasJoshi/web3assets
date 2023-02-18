@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { Contract } from 'ethers';
-import lighthouse from '@lighthouse-web3/sdk';
 import useweb3store from '../store/web3store';
 import { abi, CONTRACT_ADDRESS } from '../constants';
 import { getProviderOrSigner } from '../store/util';
+import Card from '../components/Card';
 
 const Profile = () => {
 	const [isSection1, setIsSection1] = useState(true);
 	const [createdAssets, setCreatedAssets] = useState([]);
 	const [boughtAssets, setBoughtAssets] = useState([]);
-	const { web3modalRef } = useweb3store((state) => ({
+	const { web3modalRef, address } = useweb3store((state) => ({
+		address: state.address,
 		web3modalRef: state.web3Modal,
 	}));
 
@@ -22,12 +23,11 @@ const Profile = () => {
 		}
 	};
 
-	//FUNC : getMyCreatedAssets
 	const getMyCreatedAssets = async () => {
 		try {
-			const signer = await getProviderOrSigner(web3modalRef, true);
-			const contract = new Contract(CONTRACT_ADDRESS, abi, signer);
-			const _createdAssets = await contract.getCreatedAssets();
+			const provider = await getProviderOrSigner(web3modalRef, false);
+			const contract = new Contract(CONTRACT_ADDRESS, abi, provider);
+			const _createdAssets = await contract.getCreatedAssets(address);
 			setCreatedAssets(_createdAssets);
 			console.log(_createdAssets);
 		} catch (error) {
@@ -35,12 +35,11 @@ const Profile = () => {
 		}
 	};
 
-	//FUNC : getBoughtAssets
 	const getBoughtAssets = async () => {
 		try {
-			const signer = await getProviderOrSigner(web3modalRef, true);
-			const contract = new Contract(CONTRACT_ADDRESS, abi, signer);
-			const _boughtAssets = await contract.getCreatedAssets();
+			const provider = await getProviderOrSigner(web3modalRef, false);
+			const contract = new Contract(CONTRACT_ADDRESS, abi, provider);
+			const _boughtAssets = await contract.getBoughtAssets(address);
 			setBoughtAssets(_boughtAssets);
 			console.log(_boughtAssets);
 		} catch (error) {
@@ -73,7 +72,7 @@ const Profile = () => {
 							!isSection1 ? 'border-b-2 border-purple' : ''
 						}`}
 						onClick={changeSection}>
-						Owned Assets
+						Purchased Assets
 					</button>
 				</div>
 
@@ -82,7 +81,11 @@ const Profile = () => {
 						{createdAssets.length === 0 ? (
 							'No assets created by you yet!'
 						) : (
-							<div>{createdAssets.map()}</div>
+							<div className='grid gap-8 pb-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4'>
+								{createdAssets.map((item, i) => {
+									return <Card item={item} key={i} />;
+								})}
+							</div>
 						)}
 					</div>
 				) : (
@@ -90,7 +93,11 @@ const Profile = () => {
 						{boughtAssets.length === 0 ? (
 							'No assets purchased by you yet!'
 						) : (
-							<div>{boughtAssets.map()}</div>
+							<div className='grid gap-8 pb-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4'>
+								{boughtAssets.map((item, i) => {
+									return <Card item={item} key={i} />;
+								})}
+							</div>
 						)}
 					</div>
 				)}

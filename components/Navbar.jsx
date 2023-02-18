@@ -6,7 +6,6 @@ import Link from 'next/link';
 
 const Navbar = () => {
 	const web3ModalRef = useRef();
-	const [isOpen, setIsOpen] = useState(false);
 	const [walletConnected, setWalletConnected] = useState(false);
 	const { address, addAddress, addweb3Modal } = useweb3store((state) => ({
 		address: state.address,
@@ -38,7 +37,7 @@ const Navbar = () => {
 	}, [walletConnected]);
 
 	return (
-		<div className='flex justify-between items-center bg-yellow h-10 pt-5'>
+		<div className='flex justify-between items-center bg-yellow h-10 pt-5 mb-4'>
 			<Link href={'/'}>
 				<img src='/images/logo.png' alt='Logo' width={100} />
 			</Link>

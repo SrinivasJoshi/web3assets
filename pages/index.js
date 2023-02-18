@@ -16,12 +16,13 @@ export default function Home() {
 					Marketplace for digital products and assets
 				</h1>
 				<p className='my-5 w-2/4 text-center'>
-					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
-					mattis malesuada velit, at gravida nisi lacinia sed. Mauris sed
-					sagittis metus.
+					A decentralised platform for buying and selling eBooks providing a
+					secure and transparent way for authors and publishers to sell their
+					work, while allowing buyers to purchase and access eBooks in a
+					decentralised and censorship-resistant way.
 				</p>
 				<Link href={'/marketplace'}>
-					<button className='px-3 py-2 rounded-3xl text-lg bg-purple text-yellow'>
+					<button className='mb-5 px-3 py-2 rounded-3xl text-lg bg-purple text-yellow'>
 						Explore
 					</button>
 				</Link>
